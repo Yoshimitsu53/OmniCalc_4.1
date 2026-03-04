@@ -28,7 +28,7 @@ Node* new_node(NodeType t, Node* l, Node* r, double v) {
     return n;
 }
 
-/* ========= SIMPLIFICATION ENGINE ========= */
+/* ========= SADELESTIRME MOTORU ========= */
 Node* simplify(Node* n) {
     if (!n) return NULL;
     if (n->left) n->left = simplify(n->left);
@@ -39,8 +39,6 @@ Node* simplify(Node* n) {
             return new_node(NODE_CONST, NULL, NULL, 0);
         if (n->left->type == NODE_CONST && n->left->value == 1) return n->right;
         if (n->right->type == NODE_CONST && n->right->value == 1) return n->left;
-        if (n->left->type == NODE_CONST && n->right->type == NODE_CONST)
-            return new_node(NODE_CONST, NULL, NULL, n->left->value * n->right->value);
     }
     if (n->type == NODE_ADD && n->left && n->right) {
         if (n->left->type == NODE_CONST && n->left->value == 0) return n->right;
@@ -49,7 +47,7 @@ Node* simplify(Node* n) {
     return n;
 }
 
-/* ========= OMNIPARSER ========= */
+/* ========= OMNIPARSER (HATA DUZELTILDI) ========= */
 const char *p;
 Node* parse_expr();
 
@@ -57,22 +55,63 @@ Node* parse_factor() {
     while (isspace(*p)) p++;
     Node* n = NULL;
 
+    // Negatif Sayı Kontrolü
     if (*p == '-') { 
         p++; 
         n = new_node(NODE_NEG, parse_factor(), NULL, 0); 
     }
-    
+    // Ondalıklı Sayı Okuma (.5 veya 0.5)
     else if (isdigit(*p) || *p == '.') { 
         char* end; 
         double v = strtod(p, &end); 
         p = end; 
         n = new_node(NODE_CONST, NULL, NULL, v); 
     }
+    // Trigonometrik Fonksiyonlar (Eksik Kısım Tamamlandı)
     else if (strncmp(p, "sin", 3) == 0 || strncmp(p, "cos", 3) == 0 || 
              strncmp(p, "tan", 3) == 0 || strncmp(p, "cot", 3) == 0) {
-       
+        NodeType type = (strncmp(p, "sin", 3) == 0) ? NODE_SIN : 
+                        (strncmp(p, "cos", 3) == 0) ? NODE_COS : 
+                        (strncmp(p, "tan", 3) == 0) ? NODE_TAN : NODE_COT;
+        p += 3;
+        
+        // sin^2(x) gibi üslü yazım desteği
+        double expo = 1.0;
+        if (*p == '^') {
+            p++; char* end; expo = strtod(p, &end); p = end;
+        }
+
+        if (*p == '(') p++;
+        Node* inner = parse_expr();
+        if (*p == ')') p++;
+        
+        n = new_node(type, inner, NULL, 0);
+        if (expo != 1.0) n = new_node(NODE_POW, n, NULL, expo);
     }
-   
+    // X Değişkeni
+    else if (*p == 'x') { 
+        p++; 
+        n = new_node(NODE_X, NULL, NULL, 0); 
+    }
+    // Parantez İçi İfadeler
+    else if (*p == '(') { 
+        p++; 
+        n = parse_expr(); 
+        if (*p == ')') p++; 
+    }
+
+    // Üs Alma (x^2 gibi)
+    while (*p == '^') {
+        p++; char* end; double exp = strtod(p, &end); p = end;
+        n = new_node(NODE_POW, n, NULL, exp);
+    }
+
+    while (isspace(*p)) p++;
+    // Implicit Multiplication (3x veya 3(x) gibi bitişik yazımlar)
+    if (n && (*p == 'x' || isalpha(*p) || *p == '(')) {
+        n = new_node(NODE_MUL, n, parse_factor(), 0);
+    }
+    
     return n;
 }
 
@@ -94,7 +133,7 @@ Node* parse_expr() {
     return n;
 }
 
-/* ========= DERIVATIVE ENGINE ========= */
+/* ========= TUREV MOTORU ========= */
 Node* derivative(Node* n) {
     if (!n) return NULL;
     switch (n->type) {
@@ -117,12 +156,11 @@ Node* derivative(Node* n) {
 void print_math(Node* n) {
     if (!n) return;
     switch (n->type) {
-        case NODE_CONST: printf("%.0f", n->value); break;
+        case NODE_CONST: printf("%.2f", n->value); break;
         case NODE_X:     printf("x"); break;
         case NODE_MUL:   printf("("); print_math(n->left); printf("*"); print_math(n->right); printf(")"); break;
         case NODE_POW:   
-            if(n->left && n->left->type >= NODE_SIN) { print_math(n->left); printf("^%.0f", n->value); }
-            else { printf("("); print_math(n->left); printf("^%.0f)", n->value); }
+            print_math(n->left); printf("^%.0f", n->value);
             break;
         case NODE_ADD:   printf("("); print_math(n->left); printf("+"); print_math(n->right); printf(")"); break;
         case NODE_SUB:   printf("("); print_math(n->left); printf("-"); print_math(n->right); printf(")"); break;
@@ -139,13 +177,12 @@ void print_math(Node* n) {
 int main() {
     int tus, adet, l1, l2; char devam, input[256]; double sayi, sonuc, x, y;
     
-    
     printf("  ____  __  __ _   _ ___  ____    _    _     ____ \n");
     printf(" / __ \\|  \\/  | \\ | |_ _|/ ___|  / \\  | |   / ___|\n");
     printf("| |  | | |\\/| |  \\| || || |     / _ \\ | |  | |    \n");
     printf("| |__| | |  | | |\\  || || |___ / ___ \\| |__| |___ \n");
     printf(" \\____/|_|  |_|_| \\_|___|\\____/_/   \\_\\_____\\____|\n");
-    printf(" >> OmniCalc v4.1 | Engineering Hybrid Engine <<\n\n");
+    printf(" >> OmniCalc v4.2 | Engineering Hybrid Engine <<\n\n");
     
     printf("----- KULLANIM KLAVUZU -----\n");
     printf("-> Kare/Us: ^ (Orn: x^2)\n");
@@ -194,6 +231,5 @@ int main() {
         printf("\nDevam etmek istiyor musunuz? (e/h): "); scanf(" %c", &devam);
     } while (devam == 'e' || devam == 'E');
     
-
     return 0;
 }
