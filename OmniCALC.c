@@ -28,7 +28,7 @@ Node* new_node(NodeType t, Node* l, Node* r, double v) {
     return n;
 }
 
-/* ========= SADELESTIRME MOTORU ========= */
+/* ========= SIMPLIFICATION ENGINE ========= */
 Node* simplify(Node* n) {
     if (!n) return NULL;
     if (n->left) n->left = simplify(n->left);
@@ -94,7 +94,7 @@ Node* parse_expr() {
     return n;
 }
 
-/* ========= TUREV MOTORU ========= */
+/* ========= DERIVATIVE ENGINE ========= */
 Node* derivative(Node* n) {
     if (!n) return NULL;
     switch (n->type) {
