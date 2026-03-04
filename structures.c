@@ -1,3 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <ctype.h>
+#include <string.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 /* ========= OMNICALC CORE STRUCTURES ========= */
 typedef enum {
     NODE_CONST, NODE_X, NODE_ADD, NODE_SUB,
@@ -18,7 +28,7 @@ Node* new_node(NodeType t, Node* l, Node* r, double v) {
     return n;
 }
 
-/* ========= SIMPLIFICATION ENGINE ========= */
+/* ========= SİMPLİFYİNG ENGİNE ========= */
 Node* simplify(Node* n) {
     if (!n) return NULL;
     if (n->left) n->left = simplify(n->left);
@@ -29,8 +39,6 @@ Node* simplify(Node* n) {
             return new_node(NODE_CONST, NULL, NULL, 0);
         if (n->left->type == NODE_CONST && n->left->value == 1) return n->right;
         if (n->right->type == NODE_CONST && n->right->value == 1) return n->left;
-        if (n->left->type == NODE_CONST && n->right->type == NODE_CONST)
-            return new_node(NODE_CONST, NULL, NULL, n->left->value * n->right->value);
     }
     if (n->type == NODE_ADD && n->left && n->right) {
         if (n->left->type == NODE_CONST && n->left->value == 0) return n->right;
