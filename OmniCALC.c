@@ -28,7 +28,7 @@ Node* new_node(NodeType t, Node* l, Node* r, double v) {
     return n;
 }
 
-/* ========= SADELESTIRME MOTORU ========= */
+/* ========= SİMPLİFYİNG ENGİNE ========= */
 Node* simplify(Node* n) {
     if (!n) return NULL;
     if (n->left) n->left = simplify(n->left);
@@ -47,7 +47,7 @@ Node* simplify(Node* n) {
     return n;
 }
 
-/* ========= OMNIPARSER (HATA DUZELTILDI) ========= */
+/* ========= OMNIPARSER  ========= */
 const char *p;
 Node* parse_expr();
 
@@ -55,19 +55,18 @@ Node* parse_factor() {
     while (isspace(*p)) p++;
     Node* n = NULL;
 
-    // Negatif Sayı Kontrolü
+    
     if (*p == '-') { 
         p++; 
         n = new_node(NODE_NEG, parse_factor(), NULL, 0); 
     }
-    // Ondalıklı Sayı Okuma (.5 veya 0.5)
     else if (isdigit(*p) || *p == '.') { 
         char* end; 
         double v = strtod(p, &end); 
         p = end; 
         n = new_node(NODE_CONST, NULL, NULL, v); 
     }
-    // Trigonometrik Fonksiyonlar (Eksik Kısım Tamamlandı)
+    
     else if (strncmp(p, "sin", 3) == 0 || strncmp(p, "cos", 3) == 0 || 
              strncmp(p, "tan", 3) == 0 || strncmp(p, "cot", 3) == 0) {
         NodeType type = (strncmp(p, "sin", 3) == 0) ? NODE_SIN : 
@@ -75,7 +74,7 @@ Node* parse_factor() {
                         (strncmp(p, "tan", 3) == 0) ? NODE_TAN : NODE_COT;
         p += 3;
         
-        // sin^2(x) gibi üslü yazım desteği
+        
         double expo = 1.0;
         if (*p == '^') {
             p++; char* end; expo = strtod(p, &end); p = end;
@@ -88,26 +87,26 @@ Node* parse_factor() {
         n = new_node(type, inner, NULL, 0);
         if (expo != 1.0) n = new_node(NODE_POW, n, NULL, expo);
     }
-    // X Değişkeni
+    
     else if (*p == 'x') { 
         p++; 
         n = new_node(NODE_X, NULL, NULL, 0); 
     }
-    // Parantez İçi İfadeler
+   
     else if (*p == '(') { 
         p++; 
         n = parse_expr(); 
         if (*p == ')') p++; 
     }
 
-    // Üs Alma (x^2 gibi)
+    
     while (*p == '^') {
         p++; char* end; double exp = strtod(p, &end); p = end;
         n = new_node(NODE_POW, n, NULL, exp);
     }
 
     while (isspace(*p)) p++;
-    // Implicit Multiplication (3x veya 3(x) gibi bitişik yazımlar)
+    // Implicit Multiplication 
     if (n && (*p == 'x' || isalpha(*p) || *p == '(')) {
         n = new_node(NODE_MUL, n, parse_factor(), 0);
     }
@@ -133,7 +132,7 @@ Node* parse_expr() {
     return n;
 }
 
-/* ========= TUREV MOTORU ========= */
+/* ========= DERIVATIVE ENGINE ========= */
 Node* derivative(Node* n) {
     if (!n) return NULL;
     switch (n->type) {
