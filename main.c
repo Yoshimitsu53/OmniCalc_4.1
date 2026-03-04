@@ -2,19 +2,19 @@
 int main() {
     int tus, adet, l1, l2; char devam, input[256]; double sayi, sonuc, x, y;
     
-    
     printf("  ____  __  __ _   _ ___  ____    _    _     ____ \n");
     printf(" / __ \\|  \\/  | \\ | |_ _|/ ___|  / \\  | |   / ___|\n");
     printf("| |  | | |\\/| |  \\| || || |     / _ \\ | |  | |    \n");
     printf("| |__| | |  | | |\\  || || |___ / ___ \\| |__| |___ \n");
     printf(" \\____/|_|  |_|_| \\_|___|\\____/_/   \\_\\_____\\____|\n");
-    printf(" >> OmniCalc v4.1 | Engineering Hybrid Engine <<\n\n");
+    printf(" >> OmniCalc v4.2 | Engineering Hybrid Engine <<\n\n");
     
     printf("----- KULLANIM KLAVUZU -----\n");
     printf("-> Kare/Us: ^ (Orn: x^2)\n");
     printf("-> Trigonometri: sin^2(3x)\n");
     printf("-> Carpma: * (Veya bitisik: 3x)\n");
     printf("-> Bolme: /\n");
+    printf("-> Kesirli islem: . \n");
     printf("----------------------------\n");
 
     do {
@@ -56,6 +56,5 @@ int main() {
         printf("\nDevam etmek istiyor musunuz? (e/h): "); scanf(" %c", &devam);
     } while (devam == 'e' || devam == 'E');
     
-
     return 0;
 }
